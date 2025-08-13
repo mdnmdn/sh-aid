@@ -1,8 +1,8 @@
-# Rig Framework Integration Plan for Shaid
+# Rig Framework Integration Plan for sh-aid
 
 ## Overview
 
-This document outlines the integration of the Rig framework (https://docs.rig.rs/) into the Shaid project to simplify LLM connectivity and improve performance. Rig provides a lightweight, modular abstraction over multiple LLM providers with built-in error handling and optimization.
+This document outlines the integration of the Rig framework (https://docs.rig.rs/) into the sh-aid project to simplify LLM connectivity and improve performance. Rig provides a lightweight, modular abstraction over multiple LLM providers with built-in error handling and optimization.
 
 ## Benefits of Using Rig
 
@@ -41,12 +41,12 @@ impl OpenAIProvider {
 ```rust
 use rig::{completion::Prompt, providers::openai};
 
-pub struct ShaidAgent {
+pub struct sh-aidAgent {
     agent: Box<dyn rig::Agent>,
     provider_type: ProviderType,
 }
 
-impl ShaidAgent {
+impl sh-aidAgent {
     pub fn new_openai(api_key: &str, model: &str) -> Result<Self, ProviderError> {
         let client = openai::Client::new(api_key);
         let agent = client.agent(model).build();
@@ -278,4 +278,4 @@ mod tests {
 - **Compatibility**: Seamless migration for existing users
 - **Feature Completeness**: All existing features preserved
 
-This integration plan provides a clear path to modernize Shaid's LLM connectivity while maintaining reliability and improving performance.
+This integration plan provides a clear path to modernize sh-aid's LLM connectivity while maintaining reliability and improving performance.

@@ -1,8 +1,8 @@
-# Shaid Testing Strategy
+# sh-aid Testing Strategy
 
 ## Testing Philosophy
 
-The testing strategy for Shaid follows a comprehensive approach ensuring reliability, security, and cross-platform compatibility. We aim for high test coverage while maintaining practical and maintainable test suites.
+The testing strategy for sh-aid follows a comprehensive approach ensuring reliability, security, and cross-platform compatibility. We aim for high test coverage while maintaining practical and maintainable test suites.
 
 ## Testing Pyramid
 
@@ -110,7 +110,7 @@ async fn test_provider_switching() {
 ```rust
 #[test]
 fn test_cli_with_valid_input() {
-    let output = Command::new("./target/debug/shaid")
+    let output = Command::new("./target/debug/sh-aid")
         .args(&["list files in current directory"])
         .output()
         .expect("Failed to execute command");
@@ -345,4 +345,4 @@ tests/fixtures/
 - Platform-specific testing notes
 - Troubleshooting common test failures
 
-This comprehensive testing strategy ensures Shaid's reliability, security, and performance across all supported platforms while maintaining development velocity.
+This comprehensive testing strategy ensures sh-aid's reliability, security, and performance across all supported platforms while maintaining development velocity.

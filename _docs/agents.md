@@ -1,10 +1,10 @@
-# Shaid - Shell AI Assistant
+# sh-aid - Shell AI Assistant
 
 ## Project Overview
 
-Shaid is a Rust port of a TypeScript-based shell helper tool that converts natural language descriptions into CLI commands using various AI providers. The project aims to provide developers with an intelligent command-line assistant that understands context and generates appropriate shell commands.
+sh-aid is a Rust port of a TypeScript-based shell helper tool that converts natural language descriptions into CLI commands using various AI providers. The project aims to provide developers with an intelligent command-line assistant that understands context and generates appropriate shell commands.
 
-## Original Implementation (shaid-js.ts)
+## Original Implementation (sh-aid-js.ts)
 
 The original TypeScript implementation provides:
 - Multi-provider AI support (OpenAI, Claude, Gemini)
@@ -61,7 +61,7 @@ The tool collects system context to improve command generation accuracy:
 ## Project Structure
 
 ```
-shaid/
+sh-aid/
   src/
     main.rs              # Entry point and CLI handling
     config.rs            # Configuration management

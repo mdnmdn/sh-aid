@@ -1,7 +1,7 @@
-# Shaid Implementation Roadmap
+# sh-aid Implementation Roadmap
 
 ## Overview
-This document outlines the step-by-step implementation of the Shaid shell AI assistant tool in Rust, ported from the TypeScript version.
+This document outlines the step-by-step implementation of the sh-aid shell AI assistant tool in Rust, ported from the TypeScript version.
 
 ## Development Phases
 
@@ -40,7 +40,7 @@ This document outlines the step-by-step implementation of the Shaid shell AI ass
 - Rig framework integration with simplified LLM connectivity
 - Provider implementations using Rig's abstractions
 - Unified error handling leveraging Rig's built-in mechanisms
-- Configuration mapping between Shaid config and Rig providers
+- Configuration mapping between sh-aid config and Rig providers
 - Performance benefits from Rig's optimized implementations
 
 ### Phase 4: Command Generation (Days 10-12)

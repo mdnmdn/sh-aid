@@ -1,8 +1,8 @@
-# Shaid Architecture Design
+# sh-aid Architecture Design
 
 ## System Overview
 
-Shaid is designed as a modular command-line tool with clear separation of concerns and a plugin-like architecture for AI providers.
+sh-aid is designed as a modular command-line tool with clear separation of concerns and a plugin-like architecture for AI providers.
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -163,7 +163,7 @@ Error Occurrence → Error Classification → User-Friendly Message → Graceful
 ### Error Hierarchy
 ```rust
 #[derive(Debug, thiserror::Error)]
-pub enum ShaidError {
+pub enum sh-aidError {
     #[error("Configuration error: {0}")]
     Config(#[from] ConfigError),
     
@@ -265,4 +265,4 @@ tests/
 - Package manager integration (brew, apt, etc.)
 - Auto-update mechanism consideration
 
-This architecture provides a solid foundation for the Shaid implementation while maintaining flexibility for future enhancements and ensuring robust error handling and security.
+This architecture provides a solid foundation for the sh-aid implementation while maintaining flexibility for future enhancements and ensuring robust error handling and security.

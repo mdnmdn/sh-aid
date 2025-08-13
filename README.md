@@ -1,8 +1,8 @@
-# Shaid - Shell AI Assistant
+# sh-aid - Shell AI Assistant
 
 > Convert natural language descriptions into shell commands using AI
 
-Shaid is a lightweight command-line tool that helps developers generate shell commands from natural language descriptions. Built in Rust for performance and reliability, it supports multiple AI providers through the [Rig framework](https://docs.rig.rs/).
+sh-aid is a lightweight command-line tool that helps developers generate shell commands from natural language descriptions. Built in Rust for performance and reliability, it supports multiple AI providers through the [Rig framework](https://docs.rig.rs/).
 
 ## Features
 
@@ -38,7 +38,7 @@ sh-aid "compress all .txt files in current directory"
 
 ## Configuration
 
-Shaid uses a JSON configuration file stored in your platform's config directory:
+sh-aid uses a JSON configuration file stored in your platform's config directory:
 
 ```json
 {
@@ -67,7 +67,7 @@ API keys can be provided via:
 
 ## Architecture
 
-Shaid is built with:
+sh-aid is built with:
 - **[Rig framework](https://docs.rig.rs/)** for LLM connectivity
 - **Rust** for performance and safety
 - **Cross-platform** design from the ground up
@@ -82,4 +82,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-*Shaid is a Rust port inspired by shell AI assistant tools, designed for simplicity and performance.*
+*sh-aid is a Rust port inspired by shell AI assistant tools, designed for simplicity and performance.*
