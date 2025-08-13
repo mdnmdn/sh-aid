@@ -5,8 +5,10 @@ use std::path::PathBuf;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(Default)]
 pub enum ProviderType {
     #[serde(rename = "OpenAI")]
+    #[default]
     OpenAI,
     #[serde(rename = "Custom")]
     Custom,
@@ -16,11 +18,6 @@ pub enum ProviderType {
     Gemini,
 }
 
-impl Default for ProviderType {
-    fn default() -> Self {
-        ProviderType::OpenAI
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -52,18 +49,18 @@ impl Config {
         }
 
         let config_content = fs::read_to_string(&config_path)
-            .with_context(|| format!("Failed to read config file: {:?}", config_path))?;
+            .with_context(|| format!("Failed to read config file: {config_path:?}"))?;
 
-        let mut user_config: Config = serde_json::from_str(&config_content)
-            .with_context(|| {
-                format!(
-                    "Failed to parse config file: {:?}. Please ensure it is valid JSON.",
-                    config_path
-                )
-            })?;
+        let mut user_config: Config = serde_json::from_str(&config_content).with_context(|| {
+            format!(
+                "Failed to parse config file: {config_path:?}. Please ensure it is valid JSON."
+            )
+        })?;
 
         // Apply environment variable fallbacks
-        if user_config.api_key.is_none() || user_config.api_key.as_ref().map_or(true, |s| s.is_empty()) {
+        if user_config.api_key.is_none()
+            || user_config.api_key.as_ref().is_none_or(|s| s.is_empty())
+        {
             user_config.api_key = get_env_api_key(&user_config.provider_type);
         }
 
@@ -75,14 +72,13 @@ impl Config {
         if let Some(parent) = config_path.parent() {
             fs::create_dir_all(parent).with_context(|| {
                 format!(
-                    "Failed to create config directory: {:?}. Please check your permissions.",
-                    parent
+                    "Failed to create config directory: {parent:?}. Please check your permissions."
                 )
             })?;
         }
 
         let default_config = Config::default();
-        
+
         // Create the config file with empty API key
         let config_for_file = Config {
             api_key: Some(String::new()),
@@ -95,20 +91,19 @@ impl Config {
 
         fs::write(config_path, config_json).with_context(|| {
             format!(
-                "Failed to create config file: {:?}. Please check your permissions.",
-                config_path
+                "Failed to create config file: {config_path:?}. Please check your permissions."
             )
         })?;
 
         // Return config with environment API key for this first run
         let mut config = default_config;
         config.api_key = get_env_api_key(&config.provider_type);
-        
+
         Ok(config)
     }
 
     pub fn validate(&self) -> Result<()> {
-        if self.api_key.is_none() || self.api_key.as_ref().map_or(true, |s| s.is_empty()) {
+        if self.api_key.is_none() || self.api_key.as_ref().is_none_or(|s| s.is_empty()) {
             anyhow::bail!(
                 "API key not found. Please provide an API key in your config file or set the appropriate environment variable."
             );
@@ -133,22 +128,16 @@ impl Config {
 fn get_config_path() -> Result<PathBuf> {
     let config_dir = dirs::config_dir()
         .context("Failed to determine config directory")?
-        .join("uwu");
-    
+        .join("sh-aid");
+
     Ok(config_dir.join("config.json"))
 }
 
 fn get_env_api_key(provider_type: &ProviderType) -> Option<String> {
     match provider_type {
-        ProviderType::OpenAI | ProviderType::Custom => {
-            std::env::var("OPENAI_API_KEY").ok()
-        }
-        ProviderType::Claude => {
-            std::env::var("ANTHROPIC_API_KEY").ok()
-        }
-        ProviderType::Gemini => {
-            std::env::var("GOOGLE_API_KEY").ok()
-        }
+        ProviderType::OpenAI | ProviderType::Custom => std::env::var("OPENAI_API_KEY").ok(),
+        ProviderType::Claude => std::env::var("ANTHROPIC_API_KEY").ok(),
+        ProviderType::Gemini => std::env::var("GOOGLE_API_KEY").ok(),
     }
 }
 
@@ -170,14 +159,14 @@ mod tests {
     #[test]
     fn test_config_validation() {
         let mut config = Config::default();
-        
+
         // Should fail without API key
         assert!(config.validate().is_err());
-        
+
         // Should succeed with API key
         config.api_key = Some("test-key".to_string());
         assert!(config.validate().is_ok());
-        
+
         // Should fail with empty model
         config.model = String::new();
         assert!(config.validate().is_err());
@@ -225,6 +214,9 @@ mod tests {
         assert!(matches!(deserialized.provider_type, ProviderType::Claude));
         assert_eq!(deserialized.api_key, Some("test-key".to_string()));
         assert_eq!(deserialized.model, "claude-3-sonnet");
-        assert_eq!(deserialized.base_url, Some("https://api.anthropic.com".to_string()));
+        assert_eq!(
+            deserialized.base_url,
+            Some("https://api.anthropic.com".to_string())
+        );
     }
 }

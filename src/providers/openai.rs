@@ -6,7 +6,7 @@ use std::time::Duration;
 use super::{AIProvider, ModelInfo, ProviderError};
 use crate::config::Config;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct OpenAIMessage {
     role: String,
     content: String,
@@ -55,7 +55,9 @@ impl OpenAIProvider {
             .to_string();
 
         if api_key.is_empty() {
-            return Err(ProviderError::ConfigError("API key cannot be empty".to_string()));
+            return Err(ProviderError::ConfigError(
+                "API key cannot be empty".to_string(),
+            ));
         }
 
         let base_url = config
@@ -66,7 +68,9 @@ impl OpenAIProvider {
         let client = Client::builder()
             .timeout(Duration::from_secs(30))
             .build()
-            .map_err(|e| ProviderError::ConfigError(format!("Failed to create HTTP client: {}", e)))?;
+            .map_err(|e| {
+                ProviderError::ConfigError(format!("Failed to create HTTP client: {e}"))
+            })?;
 
         Ok(Self {
             client,
@@ -109,9 +113,7 @@ impl OpenAIProvider {
                 "invalid_api_key" | "invalid_request_error" => {
                     Err(ProviderError::AuthenticationError(error.message))
                 }
-                "rate_limit_exceeded" => {
-                    Err(ProviderError::RateLimitError(error.message))
-                }
+                "rate_limit_exceeded" => Err(ProviderError::RateLimitError(error.message)),
                 _ => Err(ProviderError::ApiError {
                     status_code: 400,
                     message: error.message,
@@ -126,9 +128,11 @@ impl OpenAIProvider {
             .ok_or_else(|| ProviderError::InvalidResponse("No choices in response".to_string()))?;
 
         let command = choice.message.content.trim();
-        
+
         if command.is_empty() {
-            return Err(ProviderError::InvalidResponse("Empty command response".to_string()));
+            return Err(ProviderError::InvalidResponse(
+                "Empty command response".to_string(),
+            ));
         }
 
         Ok(command.to_string())
@@ -155,7 +159,7 @@ impl AIProvider for OpenAIProvider {
             .await?;
 
         let status = response.status();
-        
+
         if status == reqwest::StatusCode::UNAUTHORIZED {
             return Err(ProviderError::AuthenticationError(
                 "Invalid API key or authentication failed".to_string(),
@@ -180,19 +184,23 @@ impl AIProvider for OpenAIProvider {
         }
 
         let openai_response: OpenAIResponse = response.json().await.map_err(|e| {
-            ProviderError::InvalidResponse(format!("Failed to parse JSON response: {}", e))
+            ProviderError::InvalidResponse(format!("Failed to parse JSON response: {e}"))
         })?;
 
         self.parse_response(openai_response)
     }
 
     fn validate_config(&self, config: &Config) -> Result<(), ProviderError> {
-        if config.get_api_key().map_or(true, |key| key.is_empty()) {
-            return Err(ProviderError::ConfigError("API key is required".to_string()));
+        if config.get_api_key().is_none_or(|key| key.is_empty()) {
+            return Err(ProviderError::ConfigError(
+                "API key is required".to_string(),
+            ));
         }
 
         if config.model.is_empty() {
-            return Err(ProviderError::ConfigError("Model name is required".to_string()));
+            return Err(ProviderError::ConfigError(
+                "Model name is required".to_string(),
+            ));
         }
 
         // Validate base URL format if provided
@@ -251,7 +259,7 @@ mod tests {
     fn test_openai_provider_with_custom_base_url() {
         let mut config = create_test_config();
         config.base_url = Some("https://custom.openai.com".to_string());
-        
+
         let provider = OpenAIProvider::new(&config);
         assert!(provider.is_ok());
 
@@ -263,10 +271,10 @@ mod tests {
     fn test_openai_provider_missing_api_key() {
         let mut config = create_test_config();
         config.api_key = None;
-        
+
         let provider = OpenAIProvider::new(&config);
         assert!(provider.is_err());
-        
+
         if let Err(ProviderError::ConfigError(msg)) = provider {
             assert!(msg.contains("API key is required"));
         } else {
@@ -278,9 +286,9 @@ mod tests {
     fn test_build_request() {
         let config = create_test_config();
         let provider = OpenAIProvider::new(&config).unwrap();
-        
+
         let request = provider.build_request("system prompt", "user prompt");
-        
+
         assert_eq!(request.model, "gpt-4o");
         assert_eq!(request.messages.len(), 2);
         assert_eq!(request.messages[0].role, "system");
@@ -295,7 +303,7 @@ mod tests {
     fn test_parse_successful_response() {
         let config = create_test_config();
         let provider = OpenAIProvider::new(&config).unwrap();
-        
+
         let response = OpenAIResponse {
             choices: vec![OpenAIChoice {
                 message: OpenAIMessage {
@@ -316,7 +324,7 @@ mod tests {
     fn test_parse_error_response() {
         let config = create_test_config();
         let provider = OpenAIProvider::new(&config).unwrap();
-        
+
         let response = OpenAIResponse {
             choices: vec![],
             error: Some(OpenAIError {
@@ -328,7 +336,7 @@ mod tests {
 
         let result = provider.parse_response(response);
         assert!(result.is_err());
-        
+
         if let Err(ProviderError::AuthenticationError(msg)) = result {
             assert_eq!(msg, "Invalid API key");
         } else {
@@ -340,7 +348,7 @@ mod tests {
     fn test_validate_config() {
         let config = create_test_config();
         let provider = OpenAIProvider::new(&config).unwrap();
-        
+
         assert!(provider.validate_config(&config).is_ok());
 
         // Test missing API key
@@ -363,7 +371,7 @@ mod tests {
     fn test_get_model_info() {
         let config = create_test_config();
         let provider = OpenAIProvider::new(&config).unwrap();
-        
+
         let model_info = provider.get_model_info();
         assert_eq!(model_info.name, "gpt-4o");
         assert_eq!(model_info.provider, "OpenAI");
@@ -375,7 +383,7 @@ mod tests {
     fn test_get_provider_name() {
         let config = create_test_config();
         let provider = OpenAIProvider::new(&config).unwrap();
-        
+
         assert_eq!(provider.get_provider_name(), "OpenAI");
     }
 }

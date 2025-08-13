@@ -126,6 +126,14 @@ shaid/
 - Documentation for public APIs and configuration options
 - be pragmantic and brutally honest
 
+### Pre-commit Checks
+Before submitting any code, please run the following checks to ensure code quality and consistency:
+- `cargo fmt` - To format the code.
+- `cargo check` - To check for compilation errors.
+- `cargo clippy` - To check for lints and stylistic issues.
+
+Make sure all checks pass before requesting a review.
+
 ## Implementation Status
 
 ### Completed
