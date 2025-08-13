@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::process::Command;
-use sysinfo::{System, SystemExt, CpuExt};
+use sysinfo::System;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SystemContext {
@@ -28,24 +28,25 @@ impl SystemContext {
         let os_type = env::consts::OS.to_string();
         let platform = env::consts::FAMILY.to_string();
         let arch = env::consts::ARCH.to_string();
-        
+
         // Get OS release/version information
         let os_release = get_os_release().unwrap_or_else(|| "unknown".to_string());
-        
+
         let shell = env::var("SHELL").unwrap_or_else(|_| "unknown".to_string());
-        
+
         let current_dir = env::current_dir()
             .context("Failed to get current directory")?
             .to_string_lossy()
             .to_string();
-        
+
         let home_dir = dirs::home_dir()
             .map(|p| p.to_string_lossy().to_string())
             .unwrap_or_else(|| "unknown".to_string());
 
         // Get CPU information
         let cpus = sys.cpus();
-        let cpu_model = cpus.first()
+        let cpu_model = cpus
+            .first()
             .map(|cpu| cpu.brand().to_string())
             .unwrap_or_else(|| "unknown".to_string());
         let cpu_cores = cpus.len();
@@ -55,9 +56,8 @@ impl SystemContext {
         let free_memory_mb = sys.available_memory() / 1024 / 1024;
 
         // Get directory listing
-        let directory_listing = get_directory_listing().unwrap_or_else(|e| {
-            format!("Unable to get directory listing: {}", e)
-        });
+        let directory_listing = get_directory_listing()
+            .unwrap_or_else(|e| format!("Unable to get directory listing: {e}"));
 
         Ok(SystemContext {
             os_type,
@@ -130,7 +130,7 @@ fn get_macos_version() -> Option<String> {
         .arg("-productVersion")
         .output()
         .ok()?;
-    
+
     String::from_utf8(output.stdout)
         .ok()
         .map(|s| s.trim().to_string())
@@ -147,22 +147,14 @@ fn get_linux_version() -> Option<String> {
     if let Ok(content) = std::fs::read_to_string("/etc/os-release") {
         for line in content.lines() {
             if line.starts_with("PRETTY_NAME=") {
-                return Some(
-                    line.split('=')
-                        .nth(1)?
-                        .trim_matches('"')
-                        .to_string()
-                );
+                return Some(line.split('=').nth(1)?.trim_matches('"').to_string());
             }
         }
     }
-    
+
     // Fallback to uname
-    let output = Command::new("uname")
-        .arg("-r")
-        .output()
-        .ok()?;
-    
+    let output = Command::new("uname").arg("-r").output().ok()?;
+
     String::from_utf8(output.stdout)
         .ok()
         .map(|s| s.trim().to_string())
@@ -175,11 +167,8 @@ fn get_linux_version() -> Option<String> {
 
 #[cfg(target_os = "windows")]
 fn get_windows_version() -> Option<String> {
-    let output = Command::new("cmd")
-        .args(&["/C", "ver"])
-        .output()
-        .ok()?;
-    
+    let output = Command::new("cmd").args(&["/C", "ver"]).output().ok()?;
+
     String::from_utf8(output.stdout)
         .ok()
         .map(|s| s.trim().to_string())
@@ -193,7 +182,7 @@ fn get_windows_version() -> Option<String> {
 fn get_directory_listing() -> Result<String> {
     let output = if cfg!(target_os = "windows") {
         Command::new("cmd")
-            .args(&["/C", "dir"])
+            .args(["/C", "dir"])
             .output()
             .context("Failed to execute 'dir' command")?
     } else {
@@ -209,8 +198,7 @@ fn get_directory_listing() -> Result<String> {
         );
     }
 
-    String::from_utf8(output.stdout)
-        .context("Failed to convert directory listing output to UTF-8")
+    String::from_utf8(output.stdout).context("Failed to convert directory listing output to UTF-8")
 }
 
 #[cfg(test)]
@@ -221,7 +209,7 @@ mod tests {
     fn test_system_context_creation() {
         let context = SystemContext::gather();
         assert!(context.is_ok());
-        
+
         let ctx = context.unwrap();
         assert!(!ctx.os_type.is_empty());
         assert!(!ctx.platform.is_empty());
